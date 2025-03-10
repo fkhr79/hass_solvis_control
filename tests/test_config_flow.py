@@ -96,7 +96,7 @@ async def test_full_flow(hass, mock_modbus, mock_helpers) -> None:
     }
 
 
-@pytest.mark.asyncio  # OK
+@pytest.mark.asyncio
 async def test_step_user_no_mac_address(hass, mock_modbus, mock_helpers, mocker):
     """Testet den Fall, dass die MAC-Adresse nicht gefunden wird."""
     mocker.patch("custom_components.solvis_control.config_flow.get_mac", return_value=None)
@@ -108,8 +108,8 @@ async def test_step_user_no_mac_address(hass, mock_modbus, mock_helpers, mocker)
     assert result["errors"]["base"] == "cannot_connect"
 
 
-@pytest.mark.asyncio  # OK
-async def test_step_device_invalid_poll_rates(hass, mock_modbus, mock_helpers):
+@pytest.mark.asyncio
+async def test_step_device_invalid_poll_rate_high(hass, mock_modbus, mock_helpers):
     """Testet die Validierung der Poll-Raten."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     user_input = {CONF_NAME: "Solvis", CONF_HOST: "10.0.0.131", CONF_PORT: 502}
@@ -121,7 +121,7 @@ async def test_step_device_invalid_poll_rates(hass, mock_modbus, mock_helpers):
     assert "poll_rate_invalid_high" in result.get("errors", {}).get("base", "")
 
 
-@pytest.mark.asyncio  # OK
+@pytest.mark.asyncio
 async def test_step_features_invalid_combination(hass, mock_modbus, mock_helpers):
     """Testet die Validierung von inkonsistenten Feature-Kombinationen."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
@@ -160,7 +160,7 @@ async def test_async_get_options_flow(hass, mock_modbus, mock_helpers):
     assert result["step_id"] == "device"
 
 
-@pytest.mark.asyncio  # OK
+@pytest.mark.asyncio
 async def test_async_step_options_invalid_connection(hass, mock_modbus, mock_helpers):
     """Testet den Fall, dass die Verbindung im OptionsFlow fehlschlägt analog zum Full-Flow-Test."""
     mock_modbus.set_mock_behavior(fail_connect=True)
@@ -185,3 +185,16 @@ async def test_async_step_options_invalid_connection(hass, mock_modbus, mock_hel
     assert result["type"] == FlowResultType.FORM
     assert "base" in result.get("errors", {})
     assert result.get("errors", {}).get("base") == "cannot_connect"
+
+
+@pytest.mark.asyncio
+async def test_step_device_invalid_poll_rate_slow(hass, mock_modbus, mock_helpers):
+    """Testet die Validierung der Poll-Raten."""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    user_input = {CONF_NAME: "Solvis", CONF_HOST: "10.0.0.131", CONF_PORT: 502}
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
+    device_input = {DEVICE_VERSION: str(SolvisDeviceVersion.SC3), POLL_RATE_HIGH: 5, POLL_RATE_DEFAULT: 10, POLL_RATE_SLOW: 12}
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], device_input)
+    assert result["type"] == FlowResultType.FORM
+    assert "base" in result.get("errors", {})
+    assert "poll_rate_invalid_slow" in result.get("errors", {}).get("base", "")
