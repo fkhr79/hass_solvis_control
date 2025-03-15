@@ -108,8 +108,10 @@ def patch_modbus_client():
                     raise ConnectionException("Connection failed")
 
                 mock_modbus_client.connect.side_effect = failing_connect
+                _LOGGER.debug("[mock_modbus_factory] failing_connect() wurde als side_effect gesetzt.")
             else:
-                mock_modbus_client.connect.side_effect = mock_connect
+                mock_modbus_client.connect.side_effect = None
+                _LOGGER.debug("[mock_modbus_factory] Normaler connect()-Aufruf, kein Fehler simuliert.")
 
             if fail_read:
 
@@ -119,9 +121,10 @@ def patch_modbus_client():
 
                 mock_modbus_client.read_input_registers.side_effect = failing_read_registers
                 mock_modbus_client.read_holding_registers.side_effect = failing_read_registers
+                _LOGGER.debug("[mock_modbus_factory] failing_read_registers() wurde als side_effect gesetzt.")
             else:
-                mock_modbus_client.read_input_registers.side_effect = mock_read_registers
-                mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
+                mock_modbus_client.read_input_registers.side_effect = None
+                mock_modbus_client.read_holding_registers.side_effect = None
 
         mock_modbus_client.set_mock_behavior = set_mock_behavior
 
@@ -208,5 +211,6 @@ def mock_modbus(request, patch_modbus_client):
         fail_connect=param.get("fail_connect", False),
         fail_read=param.get("fail_read", False),
     )
+    _LOGGER.debug(f"[patch_modbus] Aktueller side_effect von connect: {mock_modbus_client.connect.side_effect}")
 
     return mock_modbus_client
