@@ -189,8 +189,8 @@ def mock_modbus(mocker, mock_modbus_client, request):
         mocker.patch(target, return_value=mock_modbus_instance)
 
     def mock_init(self, hass, entry):
-        # super(SolvisModbusCoordinator, self).__init__(
-        super().__init__(
+        super(SolvisModbusCoordinator, self).__init__(
+        # super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
