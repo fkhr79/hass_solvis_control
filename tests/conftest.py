@@ -54,7 +54,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 
 @pytest.fixture(autouse=True)
 def configure_logging():
-    logging.basicConfig(level=logging.WARNING, force=True)
+    logging.basicConfig(level=logging.WARNING)
 
     debug_modules = [
         "custom_components.solvis_control",
