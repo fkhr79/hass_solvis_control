@@ -67,6 +67,8 @@ def configure_logging():
         logger = logging.getLogger(module)
         logger.setLevel(logging.DEBUG)
 
+    logging.getLogger().setLevel(logging.WARNING)
+
 
 @pytest.fixture
 def mock_get_mac(mocker, request):
@@ -132,10 +134,15 @@ def mock_modbus(mocker, request):
                 async def custom_read_registers(address, count):
                     response_mock = AsyncMock()
 
+                    _LOGGER.debug(f"[custom_read_registers] Lese Register: address={address}, count={count}")
+
                     if address in custom_registers:
                         response_mock.registers = custom_registers[address]
+                        _LOGGER.debug(f"[custom_read_registers] Gefundene Registerwerte für {address}: {custom_registers[address]}")
                     else:
                         response_mock.registers = [10001]  # Standardwert
+                        _LOGGER.debug(f"[custom_read_registers] Kein spezifischer Wert für {address}, nutze Standardwert: [10001]")
+
                     return response_mock
 
                 mock_modbus_client.read_input_registers.side_effect = custom_read_registers
