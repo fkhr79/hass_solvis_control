@@ -55,7 +55,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 @pytest.fixture(autouse=True)
 def configure_logging():
     logger = logging.getLogger()
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.DEBUG)
 
 
 @pytest.fixture
@@ -77,12 +77,14 @@ def mock_get_mac(mocker, request):
 def patch_modbus_client():
 
     def mock_modbus_factory(host="127.0.0.1", port=502):
+        _LOGGER.debug(f"[mock_modbus_factory] Erstelle Mock-Modbus-Client für {host}:{port}")
         mock_modbus_client = AsyncMock(spec=AsyncModbusTcpClient)
         mock_modbus_client.host = host
         mock_modbus_client.port = port
         mock_modbus_client.DATATYPE = type("DATATYPE", (), {"INT16": "int16"})
 
         async def mock_connect():
+            _LOGGER.debug("[mock_modbus_factory] Mock-Modbus: connect() erfolgreich aufgerufen.")
             return True
 
         async def mock_read_registers(address, count):
@@ -96,9 +98,11 @@ def patch_modbus_client():
         mock_modbus_client.convert_from_registers.side_effect = lambda registers, data_type, word_order: registers[0]
 
         def set_mock_behavior(fail_connect=False, fail_read=False):
+            _LOGGER.debug(f"[mock_modbus_factory] Setze Mock-Verhalten: fail_connect={fail_connect}, fail_read={fail_read}")
             if fail_connect:
 
                 async def failing_connect():
+                    _LOGGER.debug("[mock_modbus_factory] Simuliere ConnectionException bei connect()")
                     raise ConnectionException("Connection failed")
 
                 mock_modbus_client.connect.side_effect = failing_connect
@@ -108,6 +112,7 @@ def patch_modbus_client():
             if fail_read:
 
                 async def failing_read_registers(*args, **kwargs):
+                    _LOGGER.debug("[mock_modbus_factory] Simuliere ConnectionException bei read_registers()")
                     raise ConnectionException("Read failed")
 
                 mock_modbus_client.read_input_registers.side_effect = failing_read_registers
@@ -124,6 +129,7 @@ def patch_modbus_client():
 
         type(mock_modbus_client).connected = connected
 
+        _LOGGER.debug("[mock_modbus_factory] Mock-Modbus-Client erfolgreich erstellt.")
         return mock_modbus_client
 
     return mock_modbus_factory

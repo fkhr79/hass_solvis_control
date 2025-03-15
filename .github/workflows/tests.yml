@@ -45,4 +45,4 @@ jobs:
 
       - name: Run Tests
         run: |
-          pytest --cov=custom_components/solvis_control --cov-report=term-missing
+          pytest --cov=custom_components/solvis_control --cov-report=term-missing --log-cli-level=DEBUG
