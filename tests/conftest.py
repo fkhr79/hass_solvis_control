@@ -187,6 +187,8 @@ def patch_modbus(mocker, patch_modbus_client):
 @pytest.fixture
 def mock_modbus(request, patch_modbus_client):
 
+    _LOGGER = logging.getLogger("custom_components.solvis_control.coordinator")
+
     if patch_modbus_client is None:
         raise RuntimeError("patch_modbus_client was not initialized properly")
 
