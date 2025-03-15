@@ -116,7 +116,7 @@ def patch_modbus_client():
         # def connected():
         #     return True
 
-        mock_modbus_client.connected = connected
+        # mock_modbus_client.connected = connected
 
         return mock_modbus_client
 
@@ -191,11 +191,13 @@ def mock_modbus(request, patch_modbus_client):
     #     mock_modbus_client.connect.side_effect = ConnectionException("Connection failed")
 
     if param.get("fail_connect", False) is True:
+
         async def failing_connect():
             raise ConnectionException("Connection failed")
+
         mock_modbus_client.connect.side_effect = failing_connect
     else:
         mock_modbus_client.connect.side_effect = None
-        mock_modbus_client.connect.return_value = True 
+        mock_modbus_client.connect.return_value = True
 
     return mock_modbus_client
