@@ -2,18 +2,18 @@ import unittest
 import pytest
 import asyncio
 import voluptuous as vol
+
+from voluptuous.error import Invalid
+# from pytest_homeassistant_custom_component.common import MockConfigEntry
 from unittest.mock import Mock, AsyncMock
 from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.exceptions import ConnectionException, ModbusException
 from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
-
 from scapy.all import ARP, Ether
-
 from custom_components.solvis_control.config_flow import SolvisConfigFlow
 from custom_components.solvis_control.config_flow import get_solvis_modules_options
-
 from custom_components.solvis_control.const import (
     DOMAIN,
     CONF_NAME,
@@ -34,25 +34,12 @@ from custom_components.solvis_control.const import (
     SolvisDeviceVersion,
 )
 
-from voluptuous.error import Invalid
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
 
 @pytest.mark.asyncio
 async def test_debug_modbus_patch(patch_modbus_client):
-    """Testet, ob der Modbus-Client korrekt gemockt wurde"""
-    client = patch_modbus_client("127.0.0.1", 502)  # Stelle sicher, dass host+port übergeben werden
-    assert client is not None, "Modbus-Client wurde nicht korrekt gemockt"
-    assert hasattr(client, "read_input_registers"), "Modbus-Client hat nicht die erwarteten Methoden"
-    print(f"Mocked Modbus Client: {type(client)}")
-
-
-# Debug-Test, um sicherzustellen, dass `patch_modbus_client` ein Mock-Objekt zurückgibt
-def test_patch_modbus_client_init(patch_modbus_client):
-    """Ensures the Modbus mock factory is working correctly."""
     client = patch_modbus_client("127.0.0.1", 502)
-    assert client is not None, "patch_modbus_client wurde nicht korrekt initialisiert"
-    assert hasattr(client, "read_input_registers"), "Modbus-Client hat nicht die erwarteten Attribute"
+    assert client is not None
+    assert hasattr(client, "read_input_registers")
 
 
 @pytest.mark.asyncio
