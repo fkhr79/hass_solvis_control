@@ -60,7 +60,6 @@ def configure_logging():
         "custom_components.solvis_control",
         "custom_components.solvis_control.config_flow",
         "custom_components.solvis_control.utils.helpers",
-        "custom_components.solvis_control.coordinator",
     ]
 
     for module in debug_modules:
@@ -160,7 +159,11 @@ def mock_modbus(mocker, request):
         return mock_modbus_client
 
     param = getattr(request, "param", {})
+
+    _LOGGER.debug(f"[mock_modbus] Erhaltene Parameter: {param}")
+
     register_values = {k: v for k, v in param.items() if isinstance(k, int)}
+    # register_values = {int(k): v for k, v in param.items() if str(k).isdigit()}
 
     mock_modbus_instance = mock_modbus_factory("127.0.0.1", 502)
 
@@ -171,7 +174,7 @@ def mock_modbus(mocker, request):
         fail_read=param.get("fail_read", False),
         custom_registers=register_values,
     )
-
+    _LOGGER.debug(f"[mock_modbus] Mock-Verhalten gesetzt mit Registern: {register_values}")
     _LOGGER.debug(f"[mock_modbus] Aktueller side_effect von connect: {mock_modbus_instance.connect.side_effect}")
 
     patch_targets = [
