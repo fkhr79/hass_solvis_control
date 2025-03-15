@@ -36,10 +36,9 @@ from custom_components.solvis_control.const import (
 
 
 @pytest.mark.asyncio
-async def test_debug_modbus_patch(patch_modbus_client):
-    client = patch_modbus_client("127.0.0.1", 502)
-    assert client is not None
-    assert hasattr(client, "read_input_registers")
+async def test_debug_modbus_patch(mock_modbus):
+    assert mock_modbus is not None
+    assert hasattr(mock_modbus, "read_input_registers")
 
 
 @pytest.mark.asyncio

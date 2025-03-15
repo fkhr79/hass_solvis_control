@@ -54,8 +54,18 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 
 @pytest.fixture(autouse=True)
 def configure_logging():
-    logger = logging.getLogger("custom_components.solvis_control")
-    logger.setLevel(logging.DEBUG)
+    logging.basicConfig(level=logging.WARNING)
+
+    debug_modules = [
+        "custom_components.solvis_control",
+        "custom_components.solvis_control.config_flow",
+        "custom_components.solvis_control.utils.helpers"
+        "custom_components.solvis_control.coordinator",
+    ]
+    
+    for module in debug_modules:
+        logger = logging.getLogger(module)
+        logger.setLevel(logging.DEBUG)
 
 
 @pytest.fixture
@@ -73,8 +83,8 @@ def mock_get_mac(mocker, request):
     return mocker.patch(patch_paths[patch_target], return_value=mac_value)
 
 
-@pytest.fixture(scope="session")
-def mock_modbus_client():
+@pytest.fixture
+def mock_modbus(mocker, request):
 
     _LOGGER = logging.getLogger("custom_components.solvis_control.coordinator")
 
@@ -89,14 +99,6 @@ def mock_modbus_client():
             _LOGGER.debug("[mock_modbus_factory] Mock-Modbus: connect() erfolgreich aufgerufen.")
             return True
 
-        # async def mock_read_registers(address, count):
-        #     response_mock = AsyncMock()
-        #     response_mock.registers = {32770: [12345], 32771: [56789]}.get(address, [10001])
-        #     return response_mock
-
-        # mock_modbus_client.connect.side_effect = mock_connect
-        # mock_modbus_client.read_input_registers.side_effect = mock_read_registers
-        # mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
         mock_modbus_client.convert_from_registers.side_effect = lambda registers, data_type, word_order: registers[0]
 
         def set_mock_behavior(fail_connect=False, fail_read=False, custom_registers=None):
@@ -109,11 +111,9 @@ def mock_modbus_client():
                     raise ConnectionException("Connection failed")
 
                 mock_modbus_client.connect.side_effect = failing_connect
-                _LOGGER.debug("[mock_modbus_factory] failing_connect() wurde als side_effect gesetzt.")
 
             else:
                 mock_modbus_client.connect.side_effect = mock_connect
-                _LOGGER.debug("[mock_modbus_factory] Normaler connect()-Aufruf, kein Fehler simuliert.")
 
             if fail_read:
 
@@ -123,7 +123,6 @@ def mock_modbus_client():
 
                 mock_modbus_client.read_input_registers.side_effect = failing_read_registers
                 mock_modbus_client.read_holding_registers.side_effect = failing_read_registers
-                _LOGGER.debug("[mock_modbus_factory] failing_read_registers() wurde als side_effect gesetzt.")
 
             else:
                 custom_registers = {} if custom_registers is None else custom_registers
@@ -142,8 +141,6 @@ def mock_modbus_client():
 
         mock_modbus_client.set_mock_behavior = set_mock_behavior
 
-        _LOGGER.debug(f"[mock_modbus_factory] Nach set_mock_behavior: side_effect von connect() = {mock_modbus_client.connect.side_effect}")
-
         @property
         def connected(self):
             side_effect = self.connect.side_effect
@@ -151,25 +148,14 @@ def mock_modbus_client():
 
         type(mock_modbus_client).connected = connected
 
-        _LOGGER.debug("[mock_modbus_factory] Mock-Modbus-Client erfolgreich erstellt.")
         return mock_modbus_client
 
-    return mock_modbus_factory
-
-
-@pytest.fixture
-def mock_modbus(mocker, mock_modbus_client, request):
-
-    _LOGGER = logging.getLogger("custom_components.solvis_control.coordinator")
-
-    if mock_modbus_client is None:
-        raise RuntimeError("[mock_modbus] mock_modbus_client was not initialized properly")
-
     param = getattr(request, "param", {})
-
-    mock_modbus_instance = mock_modbus_client("127.0.0.1", 502)
-
     register_values = {k: v for k, v in param.items() if isinstance(k, int)}
+
+    mock_modbus_instance = mock_modbus_factory("127.0.0.1", 502)
+
+    _LOGGER.debug("[mock_modbus] Mock-Modbus-Client wurde erfolgreich instanziiert.")
 
     mock_modbus_instance.set_mock_behavior(
         fail_connect=param.get("fail_connect", False),
@@ -190,7 +176,6 @@ def mock_modbus(mocker, mock_modbus_client, request):
 
     def mock_init(self, hass, entry):
         super(SolvisModbusCoordinator, self).__init__(
-        # super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
