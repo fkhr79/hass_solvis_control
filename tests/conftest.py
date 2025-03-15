@@ -95,12 +95,15 @@ def patch_modbus_client():
         mock_modbus_client.convert_from_registers.side_effect = lambda registers, data_type, word_order: registers[0]
 
         def set_mock_behavior(fail_connect=False, fail_read=False):
-            if fail_connect:
-                mock_modbus_client.connect.side_effect = ConnectionException("Connection failed")
+            if fail_connect is True:
+                async def failing_connect():
+                    raise ConnectionException("Connection failed")
+                mock_modbus_client.connect.side_effect = failing_connect
             else:
                 mock_modbus_client.connect.side_effect = None
+                mock_modbus_client.connect.return_value = True
 
-            if fail_read:
+            if fail_read is True:
                 mock_modbus_client.read_input_registers.side_effect = ConnectionException("Read failed")
                 mock_modbus_client.read_holding_registers.side_effect = ConnectionException("Read failed")
             else:
@@ -109,9 +112,9 @@ def patch_modbus_client():
 
         mock_modbus_client.set_mock_behavior = set_mock_behavior
 
-        @property
-        def connected():
-            return True
+        # @property
+        # def connected():
+        #     return True
 
         mock_modbus_client.connected = connected
 
@@ -129,17 +132,13 @@ def patch_modbus(mocker, patch_modbus_client):
         "pymodbus.client.AsyncModbusTcpClient",
         "custom_components.solvis_control.utils.helpers.ModbusClient.AsyncModbusTcpClient",
         "custom_components.solvis_control.config_flow.ModbusClient.AsyncModbusTcpClient",
-        # "custom_components.solvis_control.__init__.AsyncModbusTcpClient",
     ]
 
     for target in patch_targets:
-        # mocker.patch(target, side_effect=lambda host, port: patch_modbus_client(host, port))
         mocker.patch(target, return_value=mock_client_instance)
 
-    # neu
     _LOGGER = logging.getLogger("custom_components.solvis_control.coordinator")
 
-    # neu
     def mock_init(self, hass, entry):
         super(SolvisModbusCoordinator, self).__init__(
             hass,
@@ -188,7 +187,15 @@ def mock_modbus(request, patch_modbus_client):
     mock_modbus_client.read_input_registers.side_effect = mock_read_registers
     mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
 
-    if param.get("fail_connect", False):
-        mock_modbus_client.connect.side_effect = ConnectionException("Connection failed")
+    # if param.get("fail_connect", False):
+    #     mock_modbus_client.connect.side_effect = ConnectionException("Connection failed")
+
+    if param.get("fail_connect", False) is True:
+        async def failing_connect():
+            raise ConnectionException("Connection failed")
+        mock_modbus_client.connect.side_effect = failing_connect
+    else:
+        mock_modbus_client.connect.side_effect = None
+        mock_modbus_client.connect.return_value = True 
 
     return mock_modbus_client
