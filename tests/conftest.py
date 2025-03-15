@@ -80,43 +80,49 @@ def patch_modbus_client():
         mock_modbus_client = AsyncMock(spec=AsyncModbusTcpClient)
         mock_modbus_client.host = host
         mock_modbus_client.port = port
-        mock_modbus_client.connect.return_value = True  # None
-        mock_modbus_client.connected = True
-        mock_modbus_client.close.return_value = True  # None
         mock_modbus_client.DATATYPE = type("DATATYPE", (), {"INT16": "int16"})
+
+        async def mock_connect():
+            return True
 
         async def mock_read_registers(address, count):
             response_mock = AsyncMock()
             response_mock.registers = {32770: [12345], 32771: [56789]}.get(address, [10001])
             return response_mock
 
+        mock_modbus_client.connect.side_effect = mock_connect
         mock_modbus_client.read_input_registers.side_effect = mock_read_registers
         mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
         mock_modbus_client.convert_from_registers.side_effect = lambda registers, data_type, word_order: registers[0]
 
         def set_mock_behavior(fail_connect=False, fail_read=False):
-            if fail_connect is True:
+            if fail_connect:
+
                 async def failing_connect():
                     raise ConnectionException("Connection failed")
+
                 mock_modbus_client.connect.side_effect = failing_connect
             else:
-                mock_modbus_client.connect.side_effect = None
-                mock_modbus_client.connect.return_value = True
+                mock_modbus_client.connect.side_effect = mock_connect
 
-            if fail_read is True:
-                mock_modbus_client.read_input_registers.side_effect = ConnectionException("Read failed")
-                mock_modbus_client.read_holding_registers.side_effect = ConnectionException("Read failed")
+            if fail_read:
+
+                async def failing_read_registers(*args, **kwargs):
+                    raise ConnectionException("Read failed")
+
+                mock_modbus_client.read_input_registers.side_effect = failing_read_registers
+                mock_modbus_client.read_holding_registers.side_effect = failing_read_registers
             else:
                 mock_modbus_client.read_input_registers.side_effect = mock_read_registers
                 mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
 
         mock_modbus_client.set_mock_behavior = set_mock_behavior
 
-        # @property
-        # def connected():
-        #     return True
+        @property
+        def connected(self):
+            return not isinstance(mock_modbus_client.connect.side_effect, ConnectionException)
 
-        # mock_modbus_client.connected = connected
+        type(mock_modbus_client).connected = connected
 
         return mock_modbus_client
 
@@ -177,27 +183,22 @@ def mock_modbus(request, patch_modbus_client):
 
     mock_modbus_client = patch_modbus_client("127.0.0.1", 502)
 
-    async def mock_read_registers(address, count):
-        if param.get("fail_read", False):
-            raise ConnectionException("Read failed")
-        response_mock = AsyncMock()
-        response_mock.registers = param.get(str(address), [10001])
-        return response_mock
+    # async def mock_read_registers(address, count):
+    #     if param.get("fail_read", False):
+    #         raise ConnectionException("Read failed")
+    #     response_mock = AsyncMock()
+    #    response_mock.registers = param.get(str(address), [10001])
+    #    return response_mock
 
-    mock_modbus_client.read_input_registers.side_effect = mock_read_registers
-    mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
+    # mock_modbus_client.read_input_registers.side_effect = mock_read_registers
+    # mock_modbus_client.read_holding_registers.side_effect = mock_read_registers
 
     # if param.get("fail_connect", False):
     #     mock_modbus_client.connect.side_effect = ConnectionException("Connection failed")
 
-    if param.get("fail_connect", False) is True:
-
-        async def failing_connect():
-            raise ConnectionException("Connection failed")
-
-        mock_modbus_client.connect.side_effect = failing_connect
-    else:
-        mock_modbus_client.connect.side_effect = None
-        mock_modbus_client.connect.return_value = True
+    mock_modbus_client.set_mock_behavior(
+        fail_connect=param.get("fail_connect", False),
+        fail_read=param.get("fail_read", False),
+    )
 
     return mock_modbus_client
