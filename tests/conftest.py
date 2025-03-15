@@ -76,6 +76,8 @@ def mock_get_mac(mocker, request):
 @pytest.fixture(scope="session")
 def patch_modbus_client():
 
+    _LOGGER = logging.getLogger("custom_components.solvis_control.coordinator")
+
     def mock_modbus_factory(host="127.0.0.1", port=502):
         _LOGGER.debug(f"[mock_modbus_factory] Erstelle Mock-Modbus-Client für {host}:{port}")
         mock_modbus_client = AsyncMock(spec=AsyncModbusTcpClient)
