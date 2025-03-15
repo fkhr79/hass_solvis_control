@@ -107,8 +107,7 @@ async def test_config_flow_full(hass, mock_get_mac, mock_modbus) -> None:
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("mock_get_mac", [{}], indirect=True)
-# @pytest.mark.parametrize("mock_modbus", [{"32770": [12345], "32771": [56789]}], indirect=True)
+@pytest.mark.parametrize("mock_get_mac", [{"mac": None}], indirect=True)
 async def test_config_flow_step_user_no_mac_address(hass, mock_modbus, mock_get_mac):
 
     # start config flow
@@ -122,3 +121,47 @@ async def test_config_flow_step_user_no_mac_address(hass, mock_modbus, mock_get_
     assert result["type"] == FlowResultType.FORM
     assert "base" in result["errors"]
     assert result["errors"]["base"] == "cannot_connect"
+    assert "device" in result["errors"]
+    assert result["errors"]["device"] == "Could not find mac-address of device"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mock_get_mac", [{"mac": "00:11:22:33:44:55"}], indirect=True)
+@pytest.mark.parametrize("mock_modbus", [{"fail_connect": True}], indirect=True)
+async def test_config_flow_step_user_connection_exception(hass, mock_modbus, mock_get_mac):
+
+    # start config flow
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+
+    # user input step user
+    user_input = {CONF_NAME: "Solvis Fehlerfall", CONF_HOST: "10.0.0.131", CONF_PORT: 502}
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
+
+    # check
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert "base" in result["errors"]
+    assert result["errors"]["base"] == "cannot_connect"
+    assert "device" in result["errors"]
+    assert "Modbus communication failed" in result["errors"]["device"]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("mock_get_mac", [{"mac": "00:11:22:33:44:55"}], indirect=True)
+@pytest.mark.parametrize("mock_modbus", [{"fail_read": True}], indirect=True)
+async def test_config_flow_step_user_fetch_modbus_none(hass, mock_modbus, mock_get_mac):
+
+    # start config flow
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+
+    # user input step user
+    user_input = {CONF_NAME: "Solvis Fehlerfall", CONF_HOST: "10.0.0.131", CONF_PORT: 502}
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], user_input)
+
+    # check
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert "base" in result["errors"]
+    assert result["errors"]["base"] == "cannot_connect"
+    assert "device" in result["errors"]
+    assert "Modbus communication failed" in result["errors"]["device"]
