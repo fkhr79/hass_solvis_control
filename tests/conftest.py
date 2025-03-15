@@ -54,7 +54,7 @@ def auto_enable_custom_integrations(enable_custom_integrations):
 
 @pytest.fixture(autouse=True)
 def configure_logging():
-    logging.basicConfig(level=logging.WARNING)
+    logging.basicConfig(level=logging.WARNING, force=True)
 
     debug_modules = [
         "custom_components.solvis_control",
@@ -128,7 +128,11 @@ def mock_modbus(mocker, request):
                 mock_modbus_client.read_holding_registers.side_effect = failing_read_registers
 
             else:
-                custom_registers = {} if custom_registers is None else custom_registers
+
+                if custom_registers is None:
+                    _LOGGER.warning("[mock_modbus_factory] custom_registers ist None, es sollten Werte vorhanden sein!")
+
+                custom_registers = custom_registers or {}  # Behält Werte bei, falls vorhanden
 
                 async def custom_read_registers(address, count):
                     response_mock = AsyncMock()
