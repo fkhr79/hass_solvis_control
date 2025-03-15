@@ -59,10 +59,10 @@ def configure_logging():
     debug_modules = [
         "custom_components.solvis_control",
         "custom_components.solvis_control.config_flow",
-        "custom_components.solvis_control.utils.helpers"
+        "custom_components.solvis_control.utils.helpers",
         "custom_components.solvis_control.coordinator",
     ]
-    
+
     for module in debug_modules:
         logger = logging.getLogger(module)
         logger.setLevel(logging.DEBUG)
@@ -89,11 +89,13 @@ def mock_modbus(mocker, request):
     _LOGGER = logging.getLogger("custom_components.solvis_control.coordinator")
 
     def mock_modbus_factory(host="127.0.0.1", port=502):
-        _LOGGER.debug(f"[mock_modbus_factory] Erstelle Mock-Modbus-Client für {host}:{port}")
+        _LOGGER.debug(f"[mock_modbus_factory] Erstelle Mock-Modbus-Client für {host}:{port} mit Parametern: {locals()}")
         mock_modbus_client = AsyncMock(spec=AsyncModbusTcpClient)
         mock_modbus_client.host = host
         mock_modbus_client.port = port
         mock_modbus_client.DATATYPE = type("DATATYPE", (), {"INT16": "int16"})
+
+        _LOGGER.debug(f"[mock_modbus_factory] Erstellt Mock-Modbus-Instanz: {mock_modbus_client} (ID: {id(mock_modbus_client)})")
 
         async def mock_connect():
             _LOGGER.debug("[mock_modbus_factory] Mock-Modbus: connect() erfolgreich aufgerufen.")
@@ -198,6 +200,7 @@ def mock_modbus(mocker, request):
         self.poll_rate_default = entry.data.get(POLL_RATE_DEFAULT, 10)
         self.poll_rate_slow = entry.data.get(POLL_RATE_SLOW, 30)
         self.poll_rate_high = entry.data.get(POLL_RATE_HIGH, 5)
+        _LOGGER.debug(f"[SolvisModbusCoordinator] Verwende Modbus-Instanz: {self.modbus} (ID: {id(self.modbus)}) für {self.host}:{self.port}")
 
     mocker.patch("custom_components.solvis_control.coordinator.SolvisModbusCoordinator.__init__", mock_init)
 
