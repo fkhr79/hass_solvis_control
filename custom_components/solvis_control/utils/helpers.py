@@ -73,7 +73,7 @@ async def fetch_modbus_value(register: int, register_type: int, host: str, port:
             return None
 
         _LOGGER.debug(f"Modbus client created: {modbussocket}")
-
+        _LOGGER.debug(f"[fetch_modbus_value] modbussocket.connect.side_effect = {modbussocket.connect.side_effect}")
         connected = await modbussocket.connect()
         _LOGGER.debug(f"[fetch_modbus_value] Modbus-Connect() wurde aufgerufen. Ergebnis: {connected}")
         if not connected:

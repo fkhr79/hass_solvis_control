@@ -128,6 +128,8 @@ def patch_modbus_client():
 
         mock_modbus_client.set_mock_behavior = set_mock_behavior
 
+        _LOGGER.debug(f"[mock_modbus_factory] Nach set_mock_behavior: side_effect von connect() = {mock_modbus_client.connect.side_effect}")
+
         @property
         def connected(self):
             return not isinstance(mock_modbus_client.connect.side_effect, ConnectionException)
