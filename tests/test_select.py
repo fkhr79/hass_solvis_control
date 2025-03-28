@@ -12,7 +12,18 @@ from homeassistant.helpers import entity_registry as er
 
 @pytest.fixture
 def select_entity(hass, mock_coordinator, mock_device_info):
-    entity = SolvisSelect(mock_coordinator, mock_device_info, "host", "test", True)
+    entity = SolvisSelect(
+        coordinator=mock_coordinator,
+        device_info=mock_device_info,
+        host="host",
+        name="test",
+        enabled_by_default=True,
+        options=None,
+        modbus_address=1,
+        data_processing=0,
+        poll_rate=False,
+        supported_version=1,
+    )
     entity.hass = hass
     return entity
 
@@ -241,7 +252,7 @@ async def test_async_setup_entry_entity_removal_exception(hass, mock_config_entr
         patch("homeassistant.helpers.entity_registry.async_get", side_effect=Exception("Test Exception")),
         patch("custom_components.solvis_control.select.generate_device_info"),
         patch("custom_components.solvis_control.select.REGISTERS", []),
-        patch("custom_components.solvis_control.select._LOGGER.error") as mock_log_error,
+        patch("custom_components.solvis_control.utils.helpers._LOGGER.error") as mock_log_error,
     ):
 
         mock_add_entities = MagicMock()
@@ -288,7 +299,7 @@ async def test_async_setup_entry_no_host(hass, mock_config_entry):
     """Test setup entry when no host is provided."""
     mock_config_entry.data.pop(CONF_HOST, None)
 
-    with patch("custom_components.solvis_control.select._LOGGER.error") as mock_logger:
+    with patch("custom_components.solvis_control.utils.helpers._LOGGER.error") as mock_logger:
         hass.data = {DOMAIN: {mock_config_entry.entry_id: {DATA_COORDINATOR: AsyncMock()}}}
         await async_setup_entry(hass, mock_config_entry, AsyncMock())
 
@@ -312,7 +323,7 @@ async def test_async_setup_entry_skips_sc2_entity_on_sc3_device(hass, mock_confi
         supported_version=2,  # SC2
     )
 
-    with patch("custom_components.solvis_control.select.REGISTERS", [mock_register]):
+    with patch("custom_components.solvis_control.utils.helpers.REGISTERS", [mock_register]):
         with patch("custom_components.solvis_control.utils.helpers._LOGGER.debug") as mock_logger:
             await async_setup_entry(hass, mock_config_entry, MagicMock())
             mock_logger.assert_any_call("[test_entity_sc2 | 123] Skipping SC2 entity for SC3 device.")

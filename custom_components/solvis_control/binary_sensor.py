@@ -1,5 +1,5 @@
 """
-Solvis Binary Sensors.
+Solvis Binary Sensor Entity.
 
 Version: 1.2.0-alpha11
 """

@@ -16,13 +16,14 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from datetime import timedelta
 from custom_components.solvis_control.const import (
-    DOMAIN,
     CONF_NAME,
+    PORT,
     CONF_HOST,
     CONF_PORT,
-    POLL_RATE_DEFAULT,
-    POLL_RATE_HIGH,
-    POLL_RATE_SLOW,
+    DOMAIN,
+    MANUFACTURER,
+    DATA_COORDINATOR,
+    DEVICE_VERSION,
     CONF_OPTION_1,
     CONF_OPTION_2,
     CONF_OPTION_3,
@@ -31,8 +32,9 @@ from custom_components.solvis_control.const import (
     CONF_OPTION_6,
     CONF_OPTION_7,
     CONF_OPTION_8,
-    DEVICE_VERSION,
-    SolvisDeviceVersion,
+    POLL_RATE_SLOW,
+    POLL_RATE_DEFAULT,
+    POLL_RATE_HIGH,
 )
 
 
