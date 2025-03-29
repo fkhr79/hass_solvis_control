@@ -315,7 +315,6 @@ async def async_setup_solvis_entities(
     async_add_entities: AddEntitiesCallback,
     entity_cls,
     input_type: int,
-    extra_kwargs: dict = None,
 ):
     coordinator = hass.data[DOMAIN][entry.entry_id][DATA_COORDINATOR]
     host = entry.data.get(CONF_HOST)
@@ -328,7 +327,6 @@ async def async_setup_solvis_entities(
     device_info = generate_device_info(entry, host, name)
     entities = []
     active_entity_ids = set()
-    extra_kwargs = extra_kwargs or {}
 
     for register in REGISTERS:
         if register.input_type != input_type:
@@ -347,7 +345,7 @@ async def async_setup_solvis_entities(
             data_processing=register.data_processing,
             poll_rate=register.poll_rate,
             supported_version=register.supported_version,
-            **extra_kwargs,
+            options=register.options,
         )
         entities.append(entity)
         active_entity_ids.add(entity.unique_id)

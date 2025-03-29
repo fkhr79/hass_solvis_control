@@ -31,7 +31,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry, async_add_e
         async_add_entities,
         entity_cls=SolvisSelect,
         input_type=1,  # select
-        extra_kwargs={"options": None},
     )
 
 
