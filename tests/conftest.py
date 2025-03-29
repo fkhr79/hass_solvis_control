@@ -301,3 +301,36 @@ def dummy_coordinator(monkeypatch, dummy_config_entry, dummy_entity_registry):
 
     coordinator = SolvisModbusCoordinator(hass, config_entry)
     return coordinator
+
+
+@pytest.fixture
+def dummy_solvisselect_entity(hass, mock_coordinator, mock_device_info, mock_platform):
+    def _factory(
+        host="test_host",
+        name="Test Entity",
+        enabled_by_default=True,
+        options=("Option 1", "Option 2"),
+        modbus_address=1,
+        data_processing=0,
+        poll_rate=False,
+        supported_version=1,
+        platform=None,
+        entity_id=None,
+    ):
+        entity = SolvisSelect(
+            coordinator=mock_coordinator,
+            device_info=mock_device_info,
+            host=host,
+            name=name,
+            enabled_by_default=enabled_by_default,
+            options=options,
+            modbus_address=modbus_address,
+            data_processing=data_processing,
+            poll_rate=poll_rate,
+            supported_version=supported_version,
+        )
+        entity.hass = hass
+        entity.platform = platform if platform is not None else mock_platform
+        entity.entity_id = entity_id if entity_id is not None else f"select.{name.lower().replace(' ', '_')}"
+        return entity
+    return _factory
