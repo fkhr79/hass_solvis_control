@@ -93,7 +93,6 @@ async def test_async_select_option_connection_error(hass, mock_coordinator, mock
 # # # Tests for handle_coordinator_update # # #
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update(dummy_solvisselect_entity):
     """Test coordinator update handling with valid data."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -106,7 +105,6 @@ def test_handle_coordinator_update(dummy_solvisselect_entity):
     assert select_entity._attr_available is True
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_no_data(dummy_solvisselect_entity):
     """Test coordinator update when no data is available."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -116,7 +114,6 @@ def test_handle_coordinator_update_no_data(dummy_solvisselect_entity):
     assert select_entity._attr_available is False
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_invalid_data(dummy_solvisselect_entity):
     """Test coordinator update when data type is invalid."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -126,7 +123,6 @@ def test_handle_coordinator_update_invalid_data(dummy_solvisselect_entity):
     assert select_entity._attr_available is False
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_error_code(dummy_solvisselect_entity):
     """Test coordinator update when response is error code (-300)."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -135,7 +131,6 @@ def test_handle_coordinator_update_error_code(dummy_solvisselect_entity):
     assert select_entity._attr_available is False
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_skip_slow_polling(dummy_solvisselect_entity):
     """Test skipping updates for slow polling."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -148,7 +143,6 @@ def test_handle_coordinator_update_skip_slow_polling(dummy_solvisselect_entity):
     assert select_entity._attr_current_option is None
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_skip_standard_polling(dummy_solvisselect_entity):
     """Test skipping updates for standard polling."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -161,7 +155,6 @@ def test_handle_coordinator_update_skip_standard_polling(dummy_solvisselect_enti
     assert select_entity._attr_current_option is None
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_no_matching_register(dummy_solvisselect_entity):
     """Test _handle_coordinator_update when no matching register is found."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -170,7 +163,6 @@ def test_handle_coordinator_update_no_matching_register(dummy_solvisselect_entit
     assert select_entity._attr_available is False
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_missing_poll_rate(dummy_solvisselect_entity):
     """Test _handle_coordinator_update when poll rate is missing."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -182,7 +174,6 @@ def test_handle_coordinator_update_missing_poll_rate(dummy_solvisselect_entity):
     assert select_entity._attr_available is False
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_unexpected_data_type(dummy_solvisselect_entity):
     """Test handling of unexpected data types in coordinator data."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -193,7 +184,6 @@ def test_handle_coordinator_update_unexpected_data_type(dummy_solvisselect_entit
         mock_logger.assert_called_with("[Test Entity] Invalid response data type from coordinator: {'unexpected': 'dict'} has type <class 'dict'>")
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_with_float_value(dummy_solvisselect_entity):
     """Test that float values are correctly processed in _handle_coordinator_update."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -204,7 +194,6 @@ def test_handle_coordinator_update_with_float_value(dummy_solvisselect_entity):
     assert select_entity._attr_available is True
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_with_complex_value(dummy_solvisselect_entity):
     """Test that complex numbers are correctly rejected in _handle_coordinator_update."""
     select_entity = dummy_solvisselect_entity(name="Test Entity", entity_id="select.test")
@@ -215,7 +204,6 @@ def test_handle_coordinator_update_with_complex_value(dummy_solvisselect_entity)
         assert select_entity._attr_available is False
 
 
-@pytest.mark.asyncio
 def test_handle_coordinator_update_missing_key(hass, mock_coordinator, mock_device_info, dummy_solvisselect_entity):
     """Test handling coordinator update with missing response key."""
     select_entity = dummy_solvisselect_entity(host="host", name="missing_key", enabled_by_default=True, entity_id="select.missing_key")
