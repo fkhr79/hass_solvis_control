@@ -15,6 +15,7 @@ from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.config_entries import ConfigEntry
 from datetime import timedelta
+from custom_components.solvis_control.select import SolvisSelect
 from custom_components.solvis_control.const import (
     CONF_NAME,
     PORT,
