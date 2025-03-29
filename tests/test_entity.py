@@ -14,6 +14,10 @@ class DummySolvisEntity(SolvisEntity):
         self._extra_attrs = {}
 
 
+class MinimalSolvisEntity(SolvisEntity):
+    pass
+
+
 @pytest.fixture
 def dummy_entity(hass, dummy_coordinator, mock_device_info, mock_platform):
     entity = DummySolvisEntity(
@@ -28,6 +32,26 @@ def dummy_entity(hass, dummy_coordinator, mock_device_info, mock_platform):
         poll_rate=False,
     )
     entity.hass = hass
+    entity.schedule_update_ha_state = MagicMock()
+    return entity
+
+
+@pytest.fixture
+def minimal_entity(hass, dummy_coordinator, mock_device_info, mock_platform):
+    entity = MinimalSolvisEntity(
+        coordinator=dummy_coordinator,
+        device_info=mock_device_info,
+        host="test_host",
+        name="Test Entity",
+        modbus_address=1,
+        supported_version=1,
+        enabled_by_default=True,
+        data_processing=0,
+        poll_rate=False,
+    )
+    entity.hass = hass
+    entity.platform = mock_platform
+    # Set a dummy callback to avoid unerwünschte Side-Effects
     entity.schedule_update_ha_state = MagicMock()
     return entity
 
@@ -77,31 +101,6 @@ def test_handle_coordinator_update_no_update(dummy_entity):
         assert dummy_entity._value == "previous"
         assert dummy_entity._extra_attrs == {"old": "data"}
         dummy_entity.schedule_update_ha_state.assert_not_called()
-
-
-# Minimal subclass that does not override _update_value or _reset_value
-class MinimalSolvisEntity(SolvisEntity):
-    pass
-
-
-@pytest.fixture
-def minimal_entity(hass, dummy_coordinator, mock_device_info, mock_platform):
-    entity = MinimalSolvisEntity(
-        coordinator=dummy_coordinator,
-        device_info=mock_device_info,
-        host="test_host",
-        name="Test Entity",
-        modbus_address=1,
-        supported_version=1,
-        enabled_by_default=True,
-        data_processing=0,
-        poll_rate=False,
-    )
-    entity.hass = hass
-    entity.platform = mock_platform
-    # Set a dummy callback to avoid unerwünschte Side-Effects
-    entity.schedule_update_ha_state = MagicMock()
-    return entity
 
 
 def test_update_value_not_overridden(minimal_entity):
