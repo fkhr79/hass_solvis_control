@@ -334,4 +334,5 @@ def dummy_solvisselect_entity(hass, mock_coordinator, mock_device_info, mock_pla
         entity.platform = platform if platform is not None else mock_platform
         entity.entity_id = entity_id if entity_id is not None else f"select.{name.lower().replace(' ', '_')}"
         return entity
+
     return _factory
