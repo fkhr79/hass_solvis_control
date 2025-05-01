@@ -94,6 +94,8 @@ async def test_async_setup_entry(hass, extended_config_entry, monkeypatch):
     async def dummy_first_refresh(self):
         return
 
+    monkeypatch.setattr("custom_components.solvis_control.AsyncModbusTcpClient", lambda *args, **kwargs: AsyncMock(connect=AsyncMock(return_value=True)))
+
     monkeypatch.setattr(SolvisModbusCoordinator, "async_config_entry_first_refresh", dummy_first_refresh)
 
     result = await async_setup_entry(hass, extended_config_entry)
@@ -136,6 +138,10 @@ async def test_async_unload_entry(hass, extended_config_entry, monkeypatch):
 
     hass.data.setdefault(DOMAIN, {})[extended_config_entry.entry_id] = {}
 
+    client = AsyncMock()
+    client.close = lambda: None
+    extended_config_entry.runtime_data = {"modbus": client}
+
     async def dummy_unload(*args, **kwargs):
         return True
 
@@ -151,6 +157,10 @@ async def test_async_unload_entry_failure(hass, extended_config_entry, monkeypat
     """Test async_unload_entry does not remove the entry from hass.data if unload fails."""
 
     hass.data.setdefault(DOMAIN, {})[extended_config_entry.entry_id] = {}
+
+    client = AsyncMock()
+    client.close = lambda: None
+    extended_config_entry.runtime_data = {"modbus": client}
 
     async def dummy_unload_fail(*args, **kwargs):
         return False

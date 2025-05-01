@@ -61,7 +61,11 @@ async def test_scan_modbus_registers_input(monkeypatch):
     TestField.register = 1
 
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
-    monkeypatch.setattr(ModbusClient, "AsyncModbusTcpClient", lambda host, port: DummyClient(host, port))
+    monkeypatch.setattr(
+        ModbusClient,
+        "AsyncModbusTcpClient",
+        lambda host, port, **kwargs: DummyClient(host, port),
+    )
 
     result = await scan_modbus_registers("127.0.0.1", 502, 1)
 
@@ -76,7 +80,11 @@ async def test_scan_modbus_registers_holding(monkeypatch):
     TestField.register = 2
 
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
-    monkeypatch.setattr(ModbusClient, "AsyncModbusTcpClient", lambda host, port: DummyClient(host, port))
+    monkeypatch.setattr(
+        ModbusClient,
+        "AsyncModbusTcpClient",
+        lambda host, port, **kwargs: DummyClient(host, port),
+    )
 
     result = await scan_modbus_registers("127.0.0.1", 502, 2)
 
@@ -95,7 +103,11 @@ async def test_scan_modbus_registers_error(monkeypatch):
         async def read_input_registers(self, address, count):
             return DummyResponse(True, [])
 
-    monkeypatch.setattr(ModbusClient, "AsyncModbusTcpClient", lambda host, port: ErrorClient(host, port))
+    monkeypatch.setattr(
+        ModbusClient,
+        "AsyncModbusTcpClient",
+        lambda host, port, **kwargs: ErrorClient(host, port),
+    )
 
     result = await scan_modbus_registers("127.0.0.1", 502, 1)
 
@@ -112,7 +124,11 @@ async def test_async_get_config_entry_diagnostics(monkeypatch):
     TestFieldHolding.register = 2
 
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestFieldInput, TestFieldHolding])
-    monkeypatch.setattr(ModbusClient, "AsyncModbusTcpClient", lambda host, port: DummyClient(host, port))
+    monkeypatch.setattr(
+        ModbusClient,
+        "AsyncModbusTcpClient",
+        lambda host, port, **kwargs: DummyClient(host, port),
+    )
 
     class DummyEntry:
         data = {
@@ -133,8 +149,11 @@ async def test_async_get_config_entry_diagnostics(monkeypatch):
 
 async def test_scan_modbus_registers_modbus_exception(monkeypatch):
     """Test that scan_modbus_registers captures a ModbusException and returns an error."""
-    monkeypatch.setattr(ModbusClient, "AsyncModbusTcpClient", lambda host, port: ExceptionClient())
-
+    monkeypatch.setattr(
+        ModbusClient,
+        "AsyncModbusTcpClient",
+        lambda host, port, **kwargs: ExceptionClient(),
+    )
     result = await scan_modbus_registers("127.0.0.1", 502, 1)
 
     assert "error" in result
