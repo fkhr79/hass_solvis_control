@@ -6,7 +6,7 @@ Version: v2.0.0
 
 import pytest
 import pymodbus.client as ModbusClient
-import custom_components.solvis_control.diagnostics as diag
+import custom_components.solvis_control.diagnostics as diagnostics
 
 from pymodbus.exceptions import ModbusException
 from custom_components.solvis_control.diagnostics import scan_modbus_registers, async_get_config_entry_diagnostics
@@ -61,6 +61,21 @@ class ExceptionClient:
         pass
 
 
+class ErrorReadClient(DummyClient):
+    async def read_input_registers(self, address, count):
+        raise ConnectionException("Test Modbus failure")
+
+
+@asynccontextmanager
+async def error_read_client_cm(host, port, **kwargs):
+    client = ErrorReadClient(host, port)
+    await client.connect()
+    try:
+        yield client
+    finally:
+        client.close()
+
+
 @asynccontextmanager
 async def dummy_client_cm(host, port, **kwargs):
     client = DummyClient(host, port)
@@ -102,7 +117,7 @@ async def test_scan_modbus_registers_input(monkeypatch):
 
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
     monkeypatch.setattr(
-        diag,
+        diagnostics,
         "AsyncModbusTcpClient",
         dummy_client_cm,
     )
@@ -121,7 +136,7 @@ async def test_scan_modbus_registers_holding(monkeypatch):
 
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
     monkeypatch.setattr(
-        diag,
+        diagnostics,
         "AsyncModbusTcpClient",
         dummy_client_cm,
     )
@@ -139,7 +154,7 @@ async def test_scan_modbus_registers_error(monkeypatch):
     TestField.register = 1
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
     monkeypatch.setattr(
-        diag,
+        diagnostics,
         "AsyncModbusTcpClient",
         error_client_cm,
     )
@@ -160,7 +175,7 @@ async def test_async_get_config_entry_diagnostics(monkeypatch):
 
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestFieldInput, TestFieldHolding])
     monkeypatch.setattr(
-        diag,
+        diagnostics,
         "AsyncModbusTcpClient",
         dummy_client_cm,
     )
@@ -185,9 +200,9 @@ async def test_async_get_config_entry_diagnostics(monkeypatch):
 async def test_scan_modbus_registers_modbus_exception(monkeypatch):
     """Test that scan_modbus_registers captures a ModbusException and returns an error."""
     monkeypatch.setattr(
-        diag,
+        diagnostics,
         "AsyncModbusTcpClient",
-        exception_client_cm,
+        error_read_client_cm,
     )
     result = await scan_modbus_registers("127.0.0.1", 502, 1)
 
