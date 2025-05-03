@@ -46,7 +46,10 @@ class DummyModbusCM:
         return self.client
 
     async def __aexit__(self, exc_type, exc, tb):
-        pass
+        try:
+            self._client.close()
+        except:
+            pass
 
 
 # # # Tests for generate_device_info # # #
@@ -95,7 +98,7 @@ async def test_fetch_modbus_value_success(monkeypatch):
     monkeypatch.setattr(
         helpers,
         "create_modbus_client",
-        lambda host, port, device_version=None: DummyModbusCM(dummy),
+        lambda host, port, device_version=None: DummyModbusCM(dummy_client),
     )
     result = await helpers.fetch_modbus_value(register=10, register_type=1, host="127.0.0.1", port=502)
 
@@ -106,11 +109,10 @@ async def test_fetch_modbus_value_success(monkeypatch):
 async def test_fetch_modbus_value_invalid_response(monkeypatch):
     host, port = "127.0.0.1", 502
     dummy_client = DummyModbusClient([])
-    # monkeypatch.setattr(helpers, "ModbusClient", type("DummyModbusModule", (), {"AsyncModbusTcpClient": lambda host, port: dummy_client}))
     monkeypatch.setattr(
         helpers,
         "create_modbus_client",
-        lambda host, port, device_version=None: DummyModbusCM(dummy),
+        lambda host, port, device_version=None: DummyModbusCM(dummy_client),
     )
     with pytest.raises(ModbusException):
         await helpers.fetch_modbus_value(register=10, register_type=1, host="127.0.0.1", port=502)
@@ -119,7 +121,11 @@ async def test_fetch_modbus_value_invalid_response(monkeypatch):
 @pytest.mark.asyncio
 async def test_fetch_modbus_value_connection_exception(monkeypatch):
     dummy_client = DummyModbusClient(registers=[123], raise_on_connect=True)
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModbusModule", (), {"AsyncModbusTcpClient": lambda host, port: dummy_client}))
+    monkeypatch.setattr(
+        helpers,
+        "create_modbus_client",
+        lambda host, port, device_version=None: DummyModbusCM(dummy_client),
+    )
     with pytest.raises(ConnectionException):
         await helpers.fetch_modbus_value(register=10, register_type=1, host="127.0.0.1", port=502)
 
@@ -127,7 +133,11 @@ async def test_fetch_modbus_value_connection_exception(monkeypatch):
 @pytest.mark.asyncio
 async def test_fetch_modbus_value_no_modbus_client(monkeypatch):
     host, port = "127.0.0.1", 502
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: None}))
+    monkeypatch.setattr(
+        helpers,
+        "create_modbus_client",
+        lambda host, port, device_version=None: None,
+    )
     with pytest.raises(ConnectionException) as excinfo:
         await helpers.fetch_modbus_value(register=10, register_type=1, host=host, port=port)
 
@@ -138,7 +148,11 @@ async def test_fetch_modbus_value_no_modbus_client(monkeypatch):
 async def test_fetch_modbus_value_connect_fail(monkeypatch):
     host, port = "127.0.0.1", 502
     dummy_client = DummyModbusClient(connect_success=False)
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: dummy_client}))
+    monkeypatch.setattr(
+        helpers,
+        "create_modbus_client",
+        lambda host, port, device_version=None: DummyModbusCM(dummy_client),
+    )
     with pytest.raises(ConnectionException) as excinfo:
         await helpers.fetch_modbus_value(register=10, register_type=1, host=host, port=port)
 
@@ -169,8 +183,13 @@ async def test_fetch_modbus_value_holding_registers(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_fetch_modbus_value_close_exception(monkeypatch, caplog):
+    dummy_client = DummyModbusClient(raise_on_close=True, registers=[789])
     host, port = "127.0.0.1", 502
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_on_close=True, registers=[789])}))
+    monkeypatch.setattr(
+        helpers,
+        "create_modbus_client",
+        lambda host, port, device_version=None: DummyModbusCM(dummy_client),
+    )
     result = await helpers.fetch_modbus_value(register=10, register_type=1, host=host, port=port)
 
     assert result == 789
