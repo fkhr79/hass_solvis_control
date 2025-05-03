@@ -8,7 +8,7 @@ import pytest
 import pymodbus.client as ModbusClient
 import custom_components.solvis_control.diagnostics as diagnostics
 
-from pymodbus.exceptions import ModbusException
+from pymodbus.exceptions import ModbusException, ConnectionException
 from custom_components.solvis_control.diagnostics import scan_modbus_registers, async_get_config_entry_diagnostics
 from custom_components.solvis_control.const import REGISTERS
 from contextlib import asynccontextmanager
