@@ -106,12 +106,6 @@ async def test_async_update_data_invalid_response(dummy_coordinator, monkeypatch
 
         return DummyResponse()
 
-    # dummy_modbus = dummy_coordinator.modbus
-    # dummy_modbus.read_input_registers = invalid_read
-    # data = await dummy_coordinator._async_update_data()
-
-    # assert "invalid_sensor" not in data
-
     dummy_coordinator.modbus.read_input_registers = invalid_read
 
     with pytest.raises(UpdateFailed):
@@ -136,12 +130,6 @@ async def test_async_update_data_modbus_exception(dummy_coordinator, monkeypatch
 
     async def raise_exception(address, count):
         raise ModbusException("Test modbus error")
-
-    # dummy_modbus = dummy_coordinator.modbus
-    # dummy_modbus.read_input_registers = raise_exception
-    # data = await dummy_coordinator._async_update_data()
-
-    # assert "error_sensor" not in data
 
     dummy_coordinator.modbus.read_input_registers = raise_exception
 
@@ -234,15 +222,8 @@ async def test_exception_response(dummy_coordinator, monkeypatch):
         def isError(self):
             return True
 
-    # dummy_modbus = dummy_coordinator.modbus
-
     async def exception_response(address, count):
         return DummyExceptionResponse()
-
-    # dummy_modbus.read_input_registers = exception_response
-    # entity_id = f"{dummy_register.name}"
-    # data = await dummy_coordinator._async_update_data()
-    # assert entity_id not in data
 
     dummy_coordinator.modbus.read_input_registers = exception_response
 
@@ -266,16 +247,8 @@ async def test_data_conversion_error(dummy_coordinator, monkeypatch):
     )
     monkeypatch.setattr("custom_components.solvis_control.coordinator.REGISTERS", [dummy_register])
 
-    # dummy_modbus = dummy_coordinator.modbus
-
     def raise_value_error(registers, data_type, word_order):
         raise ValueError("Conversion error")
-
-    # dummy_modbus.convert_from_registers = raise_value_error
-    # entity_id = f"{dummy_register.name}"
-    # data = await dummy_coordinator._async_update_data()
-    # assert entity_id in data
-    # assert data[entity_id] == -300
 
     dummy_coordinator.modbus.convert_from_registers = raise_value_error
 
