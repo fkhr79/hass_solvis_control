@@ -9,6 +9,7 @@ import struct
 import pytest
 from unittest.mock import MagicMock
 from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.update_coordinator import UpdateFailed
 from custom_components.solvis_control.coordinator import SolvisModbusCoordinator
 from pymodbus.exceptions import ConnectionException, ModbusException
 from pymodbus.pdu import ExceptionResponse
