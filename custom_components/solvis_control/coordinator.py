@@ -11,8 +11,9 @@ import asyncio
 
 import pymodbus
 from pymodbus.client import AsyncModbusTcpClient
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.helpers import entity_registry as er
+from homeassistant.exceptions import ConfigEntryNotReady
 from pymodbus.exceptions import ConnectionException, ModbusException, ModbusIOException
 from .utils.helpers import conf_options_map_coordinator, should_skip_register, ensure_connected
 from .const import (
@@ -93,18 +94,17 @@ class SolvisModbusCoordinator(DataUpdateCoordinator):
 
                 if not connected:
                     raise RuntimeError("Modbus (re)connect failed: connect() returned False")
-                    return parsed_data
-                
+
                 _LOGGER.debug("SC2-device: Modbus reconnected")
 
-            except Exception as err:
+            except (ConnectionException, ModbusIOException, ModbusException) as err:
                 _LOGGER.error("Modbus connect failed: %s", err)
                 raise ConfigEntryNotReady("Solvis Control not reachable. Try again later...") from err
-                return parsed_data
 
+        # check connection
         if not await ensure_connected(self.modbus):
             _LOGGER.error("Initial Modbus (re)connect failed, aborting update")
-            return parsed_data
+            raise UpdateFailed("Initial Modbus (re)connect failed")
 
         for register in REGISTERS:
             _LOGGER.debug(f"[{register.name} | {register.address}] Checking...")
@@ -162,19 +162,19 @@ class SolvisModbusCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug(f"[{register.name} | {register.address}] Sleep after read (SC2)")
                     await asyncio.sleep(0.3)
 
-            except (ConnectionException, ModbusIOException, ModbusException) as e:
-                _LOGGER.warning(f"[{register.name} | {register.address}] Exception during read: {e} - skipping read")
-                continue
+            except (ConnectionException, ModbusIOException, ModbusException) as err:
+                _LOGGER.error(f"[{register.name} | {register.address}] Exception during read: {err} - skipping read")
+                raise UpdateFailed(f"[{register.name} | {register.address}] Exception during read") from err
 
             # check for error response
             if not result or hasattr(result, "isError") and result.isError():
                 _LOGGER.error(f"[{register.name} | {register.address}] Modbus error while reading register: {result}")
-                continue
+                raise UpdateFailed(f"[{register.name} | {register.address}] Modbus error while reading register")
 
             # check for invalid results
             if not hasattr(result, "registers") or not result.registers:
                 _LOGGER.error(f"[{register.name} | {register.address}] Invalid Modbus response: {result}")
-                continue
+                raise UpdateFailed(f"[{register.name} | {register.address}] Invalid Modbus response")
 
             # conversion
             try:
@@ -192,6 +192,7 @@ class SolvisModbusCoordinator(DataUpdateCoordinator):
             except (struct.error, ValueError) as err:
                 _LOGGER.error(f"[{register.name} | {register.address}] Data conversion error: {err}")
                 parsed_data[register.name] = -300
+                raise UpdateFailed(f"[{register.name} | {register.address}] Data conversion error") from err
 
         _LOGGER.debug(f"Returned data: {parsed_data}")
 
