@@ -102,7 +102,7 @@ async def test_scan_modbus_registers_input(monkeypatch):
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
     monkeypatch.setattr(
         ModbusClient,
-        "AsyncModbusTcpClient",
+        "custom_components.solvis_control.diagnostics.AsyncModbusTcpClient",
         dummy_client_cm,
     )
 
@@ -121,7 +121,7 @@ async def test_scan_modbus_registers_holding(monkeypatch):
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
     monkeypatch.setattr(
         ModbusClient,
-        "AsyncModbusTcpClient",
+        "custom_components.solvis_control.diagnostics.AsyncModbusTcpClient",
         dummy_client_cm,
     )
 
@@ -139,7 +139,7 @@ async def test_scan_modbus_registers_error(monkeypatch):
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestField])
     monkeypatch.setattr(
         ModbusClient,
-        "AsyncModbusTcpClient",
+        "custom_components.solvis_control.diagnostics.AsyncModbusTcpClient",
         error_client_cm,
     )
 
@@ -160,7 +160,7 @@ async def test_async_get_config_entry_diagnostics(monkeypatch):
     monkeypatch.setattr("custom_components.solvis_control.diagnostics.REGISTERS", [TestFieldInput, TestFieldHolding])
     monkeypatch.setattr(
         ModbusClient,
-        "AsyncModbusTcpClient",
+        "custom_components.solvis_control.diagnostics.AsyncModbusTcpClient",
         dummy_client_cm,
     )
 
@@ -185,7 +185,7 @@ async def test_scan_modbus_registers_modbus_exception(monkeypatch):
     """Test that scan_modbus_registers captures a ModbusException and returns an error."""
     monkeypatch.setattr(
         ModbusClient,
-        "AsyncModbusTcpClient",
+        "custom_components.solvis_control.diagnostics.AsyncModbusTcpClient",
         exception_client_cm,
     )
     result = await scan_modbus_registers("127.0.0.1", 502, 1)
