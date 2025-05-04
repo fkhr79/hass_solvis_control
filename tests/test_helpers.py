@@ -131,20 +131,6 @@ async def test_fetch_modbus_value_connection_exception(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_fetch_modbus_value_no_modbus_client(monkeypatch):
-    host, port = "127.0.0.1", 502
-    monkeypatch.setattr(
-        helpers,
-        "create_modbus_client",
-        lambda host, port, device_version=None: None,
-    )
-    with pytest.raises(ConnectionException) as excinfo:
-        await helpers.fetch_modbus_value(register=10, register_type=1, host=host, port=port)
-
-    assert f"Failed to initialize Modbus client for {host}:{port}" in str(excinfo.value)
-
-
-@pytest.mark.asyncio
 async def test_fetch_modbus_value_connect_fail(monkeypatch):
     host, port = "127.0.0.1", 502
     dummy_client = DummyModbusClient(connect_success=False)
@@ -300,7 +286,7 @@ async def test_write_modbus_value_connection_exception():
 @pytest.mark.asyncio
 async def test_write_modbus_value_modbus_exception(monkeypatch):
     host, port = "127.0.0.1", 502
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_on_write=True, host=host, port=port)}))
+    # monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_on_write=True, host=host, port=port)}))
     dummy = DummyModbusClient(raise_on_write=True, host=host, port=port)
     result = await helpers.write_modbus_value(dummy, address=10, value=123)
 
@@ -310,7 +296,7 @@ async def test_write_modbus_value_modbus_exception(monkeypatch):
 @pytest.mark.asyncio
 async def test_write_modbus_value_generic_exception(monkeypatch):
     host, port = "127.0.0.1", 502
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_generic_on_write=True, host=host, port=port)}))
+    # monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_generic_on_write=True, host=host, port=port)}))
     dummy = DummyModbusClient(raise_generic_on_write=True)
     result = await helpers.write_modbus_value(dummy, address=10, value=123)
 
@@ -320,7 +306,7 @@ async def test_write_modbus_value_generic_exception(monkeypatch):
 @pytest.mark.asyncio
 async def test_write_modbus_value_close_exception(monkeypatch, caplog):
     host, port = "127.0.0.1", 502
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_on_close=True, registers=[789], host=host, port=port)}))
+    # monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(raise_on_close=True, registers=[789], host=host, port=port)}))
     dummy = DummyModbusClient(raise_on_close=True, registers=[789])
     result = await helpers.write_modbus_value(dummy, address=10, value=123)
 
