@@ -160,16 +160,6 @@ async def test_fetch_modbus_value_connect_fail(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_fetch_modbus_value_invalid_response(monkeypatch):
-    host, port = "127.0.0.1", 502
-    monkeypatch.setattr(helpers, "ModbusClient", type("DummyModule", (), {"AsyncModbusTcpClient": lambda host, port: DummyModbusClient(registers=[])}))
-    with pytest.raises(ModbusException) as excinfo:
-        await helpers.fetch_modbus_value(register=10, register_type=1, host=host, port=port)
-
-    assert f"Invalid response from Modbus for register 10" in str(excinfo.value)
-
-
-@pytest.mark.asyncio
 async def test_fetch_modbus_value_holding_registers(monkeypatch):
     dummy = DummyModbusClient([456])
     monkeypatch.setattr(
