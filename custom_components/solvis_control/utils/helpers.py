@@ -417,9 +417,9 @@ def create_modbus_client(
     port: int,
     device_version: int = None,
     timeout: float = 2.0,
-    retries: int = 1,
-    reconnect_delay: float = 0.5,
-    reconnect_delay_max: float = 3.0,
+    retries: int = 3,
+    reconnect_delay: float = 1.0,
+    reconnect_delay_max: float = 5.0,
 ) -> AsyncModbusTcpClient:
     """Create AsyncModbusTcpClient; for SC2 devices (device_version==2) use slower, more stable defaults."""
 
