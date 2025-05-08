@@ -90,7 +90,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             raise RuntimeError("Modbus connect failed: connect() returned False")
 
     except Exception as err:
-        _LOGGER.error("Modbus connect failed: %s", err)
+        _LOGGER.error(f"Modbus connect failed: {s}")
         raise ConfigEntryNotReady("Solvis Control not reachable. Try again later...") from err
 
     # Create coordinator for polling
@@ -100,6 +100,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     # Setup platforms
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+
+    _LOGGER.debug("Solvis Control - Version: fork fkhr79 branch dev 20250509")
 
     return True
 
